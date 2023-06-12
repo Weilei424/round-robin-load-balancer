@@ -22,3 +22,16 @@ type ServerPool struct {
 func (sp *ServerPool) NextIndex() int {
 	return int(atomic.AddUint64(&sp.current, uint64(1)) % uint64(len(sp.backends)))
 }
+
+func (b *Backend) SetAlive(alive bool) {
+	b.mutex.Lock()
+	b.Alive = alive
+	b.mutex.Unlock()
+}
+
+func (b *Backend) IsAlive() (alive bool) {
+	b.mutex.RLock()
+	alive = b.Alive
+	b.mutex.RUnlock()
+	return
+}
