@@ -35,3 +35,19 @@ func (b *Backend) IsAlive() (alive bool) {
 	b.mutex.RUnlock()
 	return
 }
+
+func (sp *ServerPool) GetNextPeer() *Backend {
+	next := sp.NextIndex()
+	l := len(sp.backends) + next
+
+	for i := next; i < l; i++ {
+		idx := i % len(sp.backends)
+		if sp.backends[idx].IsAlive() {
+			if i != next {
+				atomic.StoreUint64(&sp.current, uint64(idx))
+			}
+			return sp.backends[idx]
+		}
+	}
+	return nil
+}
